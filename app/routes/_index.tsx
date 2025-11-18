@@ -29,6 +29,10 @@ export default function Index() {
           marginBottom: "2rem"
         }}>
           Welcome to Remix running on AWS Lambda with CloudFront
+          <br />
+          <span style={{ fontSize: "1rem", color: "#94a3b8" }}>
+            🚀 Deployed automatically via GitHub Actions
+          </span>
         </p>
         <div style={{
           backgroundColor: "#f1f5f9",
