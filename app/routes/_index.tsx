@@ -2,8 +2,8 @@ import type { MetaFunction } from "@remix-run/node";
 
 export const meta: MetaFunction = () => {
   return [
-    { title: "Hello World - Remix on Lambda" },
-    { name: "description", content: "Simple Remix app running on AWS Lambda with CloudFront" },
+    { title: "Hello World - Remix on Lambda (Auto-Deployed!)" },
+    { name: "description", content: "Simple Remix app running on AWS Lambda with CloudFront - Deployed via GitHub Actions" },
   ];
 };
 
