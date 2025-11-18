@@ -18,15 +18,14 @@ export class RemixLambdaStack extends cdk.Stack {
       code: lambda.Code.fromAsset(path.join(__dirname, '../../'), {
         exclude: [
           'infrastructure',
-          'node_modules',
           '.git',
+          '.github',
           '.cache',
-          'app',
-          'public',
-          'vite.config.ts',
-          'tsconfig.json',
-          'package.json',
-          'package-lock.json',
+          'app',  // Exclude source files - we use the built version
+          'test-*.js',
+          'test-*.sh',
+          'get-account-id.js',
+          '*.md',
         ],
       }),
       memorySize: 1024,
@@ -45,7 +44,7 @@ export class RemixLambdaStack extends cdk.Stack {
       ),
     });
 
-    // CloudFront distribution
+    // CloudFront distribution pointing directly to API Gateway
     const distribution = new cloudfront.Distribution(this, 'RemixDistribution', {
       defaultBehavior: {
         origin: new origins.HttpOrigin(
@@ -55,7 +54,7 @@ export class RemixLambdaStack extends cdk.Stack {
           }
         ),
         allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
-        cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED, // Disable caching for dynamic content
+        cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
         originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER,
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
       },

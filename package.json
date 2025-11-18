@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "remix vite:dev",
-    "build": "remix vite:build",
+    "build": "remix vite:build && tsc server.ts --module esnext --target es2022 --moduleResolution bundler",
     "start": "remix-serve ./build/server/index.js",
     "typecheck": "tsc",
     "cdk:deploy": "cd infrastructure && cdk deploy",
