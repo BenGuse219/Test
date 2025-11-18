@@ -44,6 +44,14 @@ export class RemixLambdaStack extends cdk.Stack {
       ),
     });
 
+    // CRITICAL FIX: Grant API Gateway permission to invoke the Lambda function
+    // HttpLambdaIntegration doesn't always automatically create this permission
+    remixFunction.addPermission('ApiGatewayInvokePermission', {
+      principal: new cdk.aws_iam.ServicePrincipal('apigateway.amazonaws.com'),
+      sourceArn: httpApi.arnForExecuteApi('*'),
+      action: 'lambda:InvokeFunction',
+    });
+
     // CloudFront distribution pointing directly to API Gateway
     const distribution = new cloudfront.Distribution(this, 'RemixDistribution', {
       defaultBehavior: {
