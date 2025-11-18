@@ -1,6 +1,7 @@
 import * as cdk from 'aws-cdk-lib';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as apigateway from 'aws-cdk-lib/aws-apigatewayv2';
+import { HttpLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
 import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
 import * as origins from 'aws-cdk-lib/aws-cloudfront-origins';
 import { Construct } from 'constructs';
@@ -38,7 +39,7 @@ export class RemixLambdaStack extends cdk.Stack {
     // HTTP API Gateway (v2) - more cost-effective and simpler for Lambda proxy
     const httpApi = new apigateway.HttpApi(this, 'RemixHttpApi', {
       description: 'HTTP API for Remix Lambda function',
-      defaultIntegration: new apigateway.HttpLambdaIntegration(
+      defaultIntegration: new HttpLambdaIntegration(
         'RemixIntegration',
         remixFunction
       ),
