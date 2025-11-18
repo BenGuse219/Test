@@ -1,0 +1,74 @@
+name: Deploy Remix App to AWS
+
+on:
+  push:
+    branches:
+      - main
+      - claude/**  # Auto-deploy from Claude Code branches
+  workflow_dispatch:  # Allow manual triggers
+
+env:
+  AWS_REGION: us-east-1
+  NODE_VERSION: '20'
+
+jobs:
+  deploy:
+    name: Build and Deploy
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write  # Required for OIDC if you use it later
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Remix application
+        run: npm run build
+
+      - name: Install infrastructure dependencies
+        working-directory: infrastructure
+        run: npm ci
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: CDK Bootstrap (if needed)
+        working-directory: infrastructure
+        run: |
+          npx cdk bootstrap aws://573731143733/us-east-1 || echo "Already bootstrapped"
+        continue-on-error: true
+
+      - name: Deploy with CDK
+        working-directory: infrastructure
+        run: npx cdk deploy --require-approval never
+
+      - name: Get deployment outputs
+        id: outputs
+        working-directory: infrastructure
+        run: |
+          CLOUDFRONT_URL=$(npx cdk deploy --outputs-file outputs.json --require-approval never > /dev/null 2>&1 && cat outputs.json | jq -r '.RemixLambdaStack.CloudFrontUrl // empty')
+          if [ -n "$CLOUDFRONT_URL" ]; then
+            echo "cloudfront_url=$CLOUDFRONT_URL" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Comment deployment URL
+        if: github.event_name == 'push' && steps.outputs.outputs.cloudfront_url != ''
+        run: |
+          echo "🚀 Deployment successful!"
+          echo "CloudFront URL: ${{ steps.outputs.outputs.cloudfront_url }}"
+          echo "Note: CloudFront may take 5-10 minutes to fully propagate"
