@@ -55,7 +55,20 @@ export class RemixLambdaStack extends cdk.Stack {
         ),
         allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
         cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
-        originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER,
+        // Use a custom origin request policy that doesn't forward the Host header
+        // API Gateway needs SNI and will fail with 403 if Host header is forwarded
+        originRequestPolicy: new cloudfront.OriginRequestPolicy(this, 'ApiGatewayOriginPolicy', {
+          headerBehavior: cloudfront.OriginRequestHeaderBehavior.allowList(
+            'Accept',
+            'Accept-Language',
+            'Content-Type',
+            'Origin',
+            'Referer',
+            'User-Agent'
+          ),
+          queryStringBehavior: cloudfront.OriginRequestQueryStringBehavior.all(),
+          cookieBehavior: cloudfront.OriginRequestCookieBehavior.all(),
+        }),
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
       },
       comment: 'CloudFront distribution for Remix app',
