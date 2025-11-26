@@ -47,6 +47,8 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }} # Using the new Role ARN
           aws-region: ${{ env.AWS_REGION }}
       # -----------------------------------
+      - name: Verify Connection
+        run: aws sts get-caller-identity
 
       - name: CDK Bootstrap (if needed)
         working-directory: infrastructure
