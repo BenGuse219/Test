@@ -11,8 +11,12 @@ export default defineConfig(({ mode }) => {
         ignoredRouteFiles: ["**/*.css"],
       }),
     ],
+    // Fix module resolution for React in dev mode
     ssr: {
-      noExternal: true,
+      noExternal: mode === 'production',
+    },
+    optimizeDeps: {
+      include: ['react', 'react-dom', 'react/jsx-runtime', 'react/jsx-dev-runtime'],
     },
     define: {
       'process.env.ANTHROPIC_API_KEY': JSON.stringify(env.ANTHROPIC_API_KEY),
