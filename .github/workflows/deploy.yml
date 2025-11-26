@@ -102,7 +102,7 @@ jobs:
     if: needs.deploy.outputs.cloudfront_url != ''
 
     permissions:
-      contents: read
+      contents: write   # Required to commit screenshots
       issues: write     # Required to create issues on failure
 
     steps:
@@ -130,6 +130,34 @@ jobs:
         env:
           PLAYWRIGHT_BASE_URL: ${{ needs.deploy.outputs.cloudfront_url }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+      - name: Commit screenshots to repo
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Add screenshots if any exist
+          if [ -d "screenshots" ] && [ "$(ls -A screenshots 2>/dev/null)" ]; then
+            git add screenshots/
+
+            # Only commit if there are changes
+            if ! git diff --staged --quiet; then
+              git commit -m "📸 Update production screenshots from test run #${{ github.run_number }}
+
+              Automated screenshot update from production tests
+              Deployed URL: ${{ needs.deploy.outputs.cloudfront_url }}
+              Workflow: ${{ github.workflow }}
+              Run: ${{ github.run_number }}"
+
+              git push
+              echo "✅ Screenshots committed and pushed"
+            else
+              echo "ℹ️  No screenshot changes to commit"
+            fi
+          else
+            echo "ℹ️  No screenshots directory found"
+          fi
 
       - name: Upload test results
         if: always()
