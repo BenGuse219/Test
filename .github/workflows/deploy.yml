@@ -49,7 +49,7 @@ jobs:
           npm ci
 
       - name: Deploy to AWS
-        run: npm run cdk:deploy -- --require-approval never
+        run: cd infrastructure && npx cdk deploy --require-approval never
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
