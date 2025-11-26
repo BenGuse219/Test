@@ -13,7 +13,7 @@ export default defineConfig({
   reporter: 'list',
 
   use: {
-    baseURL: 'https://drfblw58o2mrh.cloudfront.net',
+    baseURL: process.env.PLAYWRIGHT_BASE_URL || 'https://drfblw58o2mrh.cloudfront.net',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',

@@ -9,39 +9,15 @@ on:
   workflow_dispatch: # Allow manual deployment
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps chromium
-
-      - name: Build application
-        run: npm run build
-
-      - name: Run tests
-        run: npm test
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-
   deploy:
-    needs: test
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/claude/')
 
     permissions:
       contents: read
       id-token: write   # Required for OIDC authentication
+
+    outputs:
+      cloudfront_url: ${{ steps.get-url.outputs.cloudfront_url }}
 
     steps:
       - uses: actions/checkout@v4
@@ -77,20 +53,53 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
-      - name: Get deployment outputs
-        id: outputs
+      - name: Get CloudFront URL
+        id: get-url
         run: |
           cd infrastructure
-          echo "cloudfront_url=$(npx cdk deploy --outputs-file outputs.json 2>&1 | grep CloudFrontUrl | cut -d '=' -f2 | tr -d ' ')" >> $GITHUB_OUTPUT
+          CLOUDFRONT_URL=$(npx cdk deploy --outputs-file cdk-outputs.json --require-approval never 2>&1 | grep -oP 'https://[a-z0-9]+\.cloudfront\.net' | head -1)
+          if [ -z "$CLOUDFRONT_URL" ]; then
+            # Fallback: try to read from outputs file
+            CLOUDFRONT_URL=$(cat cdk-outputs.json 2>/dev/null | grep -oP '"CloudFrontUrl":\s*"\K[^"]+' || echo "")
+          fi
+          echo "cloudfront_url=$CLOUDFRONT_URL" >> $GITHUB_OUTPUT
+          echo "🚀 Deployed to: $CLOUDFRONT_URL"
 
-      - name: Comment deployment URL
-        uses: actions/github-script@v7
-        if: github.event_name == 'pull_request'
+  test-production:
+    needs: deploy
+    runs-on: ubuntu-latest
+    if: needs.deploy.outputs.cloudfront_url != ''
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: '🚀 Deployment successful!\n\nYour app is live at: ${{ steps.outputs.outputs.cloudfront_url }}'
-            })
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Wait for CloudFront to propagate
+        run: |
+          echo "Waiting 30 seconds for CloudFront to propagate..."
+          sleep 30
+
+      - name: Test production deployment
+        run: npx playwright test --config=playwright.prod.config.ts
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ needs.deploy.outputs.cloudfront_url }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
