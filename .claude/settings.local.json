@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(npx tailwindcss:*)",
+      "Bash(npm run build:*)",
+      "Bash(aws sts get-caller-identity:*)",
+      "Bash(npx playwright install chromium)",
+      "Bash(npx cdk deploy:*)",
+      "Bash(npx playwright test:*)",
+      "Bash(curl:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

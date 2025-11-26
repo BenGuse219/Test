@@ -1,4 +1,5 @@
 import { createRequestHandler } from "@remix-run/server-runtime";
+import { Anthropic } from "@anthropic-ai/sdk";
 import type {
   APIGatewayProxyEventV2,
   APIGatewayProxyResultV2,
@@ -15,6 +16,10 @@ export async function handler(
   context: Context
 ): Promise<APIGatewayProxyResultV2> {
   try {
+    const anthropic = new Anthropic({
+      apiKey: process.env.ANTHROPIC_API_KEY,
+    });
+
     // Convert Lambda event to Web Request
     const url = new URL(event.rawPath, `https://${event.requestContext.domainName}`);
     if (event.rawQueryString) {
@@ -34,6 +39,7 @@ export async function handler(
     const response = await handleRequest(request, {
       context,
       event,
+      anthropic,
     });
 
     // Convert Web Response to Lambda response

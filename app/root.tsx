@@ -6,6 +6,9 @@ import {
   ScrollRestoration,
 } from "@remix-run/react";
 
+// Vite handles CSS injection automatically
+import "./tailwind.css";
+
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
