@@ -8,7 +8,9 @@
       "Bash(npx playwright install chromium)",
       "Bash(npx cdk deploy:*)",
       "Bash(npx playwright test:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(git checkout:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []

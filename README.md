@@ -69,6 +69,39 @@ RemixLambdaStack.CloudFrontUrl = https://d1234567890.cloudfront.net
 
 Visit this URL to see your Remix app running on Lambda!
 
+## Automated Deployment with GitHub Actions (Recommended)
+
+This repository includes a GitHub Actions workflow that **automatically deploys your app** when you push code. This is especially useful when working in environments with network restrictions (like Claude Code).
+
+### Setup (One-time)
+
+1. Go to your GitHub repository → **Settings** → **Secrets and variables** → **Actions**
+2. Add these secrets:
+   - `AWS_ACCESS_KEY_ID`: Your AWS access key
+   - `AWS_SECRET_ACCESS_KEY`: Your AWS secret key
+
+### How It Works
+
+Once configured, deployment is **completely automatic**:
+
+1. Make changes to your code (in Claude Code or locally)
+2. Commit and push to any `claude/*` branch or `main`
+3. GitHub Actions automatically:
+   - Installs dependencies
+   - Builds the Remix app
+   - Deploys to AWS with CDK
+   - Outputs the CloudFront URL in the Actions log
+
+### Monitor Deployments
+
+- Go to the **Actions** tab in GitHub to see deployment progress
+- Each deployment takes ~4-5 minutes
+- The CloudFront URL is shown in the deployment logs
+
+**This means you can develop entirely in Claude Code and have automatic deployments to production!**
+
+See [.github/workflows/README.md](.github/workflows/README.md) for more details.
+
 ## Development
 
 ### Local Development
