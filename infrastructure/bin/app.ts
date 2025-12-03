@@ -6,6 +6,9 @@ import { RemixLambdaStack } from '../lib/remix-lambda-stack';
 const app = new cdk.App();
 
 new RemixLambdaStack(app, 'RemixLambdaStack', {
-  // Let CDK auto-discover account and region from credentials
+  env: {
+    account: process.env.CDK_DEFAULT_ACCOUNT,
+    region: process.env.CDK_DEFAULT_REGION,
+  },
   description: 'Simple Remix app deployed to Lambda with CloudFront',
 });
