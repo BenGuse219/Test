@@ -8,7 +8,19 @@
       "Bash(npx playwright install chromium)",
       "Bash(npx cdk deploy:*)",
       "Bash(npx playwright test:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(if [ -f .env ])",
+      "Bash(then cp .env .env.backup)",
+      "Bash(else echo \"No .env file found\")",
+      "Bash(fi)",
+      "Bash(rm:*)",
+      "Bash(git checkout:*)",
+      "Bash(if [ -f .env.backup ])",
+      "Bash(then cp .env.backup .env)",
+      "Bash(aws lambda invoke:*)",
+      "Bash(cat:*)",
+      "Bash(aws logs tail:*)",
+      "Bash(aws logs describe-log-groups:*)"
     ],
     "deny": [],
     "ask": []
